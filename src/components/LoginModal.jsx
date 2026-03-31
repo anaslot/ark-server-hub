@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { X, Shield, Mail, Apple, User, Chrome } from 'lucide-react';
+import { X, Shield, Mail, Apple, User, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LoginModal = ({ onClose }) => {
@@ -45,7 +45,7 @@ const LoginModal = ({ onClose }) => {
             <div className="bg-primary text-white p-3 rounded-2xl mb-4 shadow-lg shadow-primary/20">
               <Shield size={40} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.welcome')}</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">{t('auth.welcome')}</h2>
             <p className="text-muted-foreground">{t('auth.loginPrompt')}</p>
           </div>
 
@@ -55,7 +55,7 @@ const LoginModal = ({ onClose }) => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 bg-white border-2 border-border py-3.5 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 hover:border-primary/50 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              <Chrome size={20} className="text-[#4285F4]" />
+              <Globe size={20} className="text-[#4285F4]" />
               <span>{t('auth.googleLogin')}</span>
             </button>
 
