@@ -1,0 +1,63 @@
+{
+  "common": {
+    "appName": "ARK Server Hub",
+    "home": "الرئيسية",
+    "submit": "تقديم سيرفر",
+    "profile": "الملف الشخصي",
+    "admin": "لوحة الأدمن",
+    "owner": "لوحة المالك",
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "search": "بحث...",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "status": "الحالة",
+    "role": "الرتبة",
+    "notifications": "الإشعارات",
+    "noNotifications": "لا توجد إشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "guest": "زائر",
+    "user": "مستخدم",
+    "blocked": "محظور",
+    "pending": "قيد الانتظار",
+    "accepted": "مقبول",
+    "rejected": "مرفوض"
+  },
+  "home": {
+    "title": "سيرفرات ARK Mobile",
+    "subtitle": "اكتشف أفضل السيرفرات والترايبات للعبة ARK Mobile",
+    "filterByType": "النوع",
+    "filterByDifficulty": "الصعوبة",
+    "filterByLanguage": "اللغة",
+    "sortByDate": "التاريخ",
+    "sortByPlayers": "عدد اللاعبين",
+    "noServers": "لم يتم العثور على سيرفرات"
+  },
+  "submit": {
+    "title": "تقديم سيرفر جديد",
+    "serverName": "اسم السيرفر",
+    "type": "نوع السيرفر",
+    "difficulty": "الصعوبة",
+    "language": "اللغة",
+    "playersCount": "عدد اللاعبين",
+    "description": "الوصف",
+    "images": "صور السيرفر",
+    "optionalLinks": "روابط اختيارية (ديسكورد، واتساب، إلخ)",
+    "submitBtn": "إرسال الطلب",
+    "successMsg": "تم تقديم طلبك بنجاح! يمكنك متابعته عبر الرابط الفريد.",
+    "errorMsg": "حدث خطأ أثناء تقديم الطلب."
+  },
+  "auth": {
+    "welcome": "مرحباً بك في ARK Server Hub",
+    "loginPrompt": "يرجى تسجيل الدخول للوصول إلى كافة الميزات",
+    "googleLogin": "تسجيل الدخول عبر Google",
+    "appleLogin": "تسجيل الدخول عبر Apple",
+    "guestLogin": "الدخول كزائر",
+    "blockedMsg": "عذراً، حسابك محظور من الوصول إلى الموقع."
+  }
+}

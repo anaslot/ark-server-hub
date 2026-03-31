@@ -1,0 +1,63 @@
+{
+  "common": {
+    "appName": "ARK Server Hub",
+    "home": "Home",
+    "submit": "Submit Server",
+    "profile": "Profile",
+    "admin": "Admin Panel",
+    "owner": "Owner Panel",
+    "login": "Login",
+    "logout": "Logout",
+    "search": "Search...",
+    "filter": "Filter",
+    "sort": "Sort",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "status": "Status",
+    "role": "Role",
+    "notifications": "Notifications",
+    "noNotifications": "No notifications",
+    "markAllRead": "Mark all as read",
+    "guest": "Guest",
+    "user": "User",
+    "blocked": "Blocked",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected"
+  },
+  "home": {
+    "title": "ARK Mobile Servers",
+    "subtitle": "Discover the best ARK Mobile servers and tribes",
+    "filterByType": "Type",
+    "filterByDifficulty": "Difficulty",
+    "filterByLanguage": "Language",
+    "sortByDate": "Date",
+    "sortByPlayers": "Players Count",
+    "noServers": "No servers found"
+  },
+  "submit": {
+    "title": "Submit New Server",
+    "serverName": "Server Name",
+    "type": "Server Type",
+    "difficulty": "Difficulty",
+    "language": "Language",
+    "playersCount": "Players Count",
+    "description": "Description",
+    "images": "Server Images",
+    "optionalLinks": "Optional Links (Discord, WhatsApp, etc.)",
+    "submitBtn": "Submit Request",
+    "successMsg": "Your request has been submitted successfully! You can follow it via the unique link.",
+    "errorMsg": "An error occurred while submitting the request."
+  },
+  "auth": {
+    "welcome": "Welcome to ARK Server Hub",
+    "loginPrompt": "Please login to access all features",
+    "googleLogin": "Login with Google",
+    "appleLogin": "Login with Apple",
+    "guestLogin": "Guest Login",
+    "blockedMsg": "Sorry, your account is blocked from accessing the site."
+  }
+}
