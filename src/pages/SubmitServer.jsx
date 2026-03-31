@@ -87,7 +87,7 @@ const SubmitServer = () => {
     const code = generateCode();
 
     try {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('server_requests')
         .insert({
           code,
@@ -102,15 +102,19 @@ const SubmitServer = () => {
           links: links.filter(l => l.label && l.url),
           status: 'Pending',
           created_at: new Date().toISOString()
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase Insert Error:', error);
+        throw error;
+      }
 
       toast.success(t('submit.successMsg'));
       navigate(`/request/${code}`);
     } catch (error) {
       console.error('Error submitting server:', error);
-      toast.error(t('submit.errorMsg'));
+      toast.error(error.message || t('submit.errorMsg'));
     } finally {
       setLoading(false);
     }
