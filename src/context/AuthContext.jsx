@@ -108,6 +108,29 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
   };
 
+  const signInWithEmail = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const signUpWithEmail = async (email, password, username) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: username,
+        },
+      },
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const loginAsGuest = () => {
     const guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
     const guestData = {
@@ -134,7 +157,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, loginWithGoogle, loginWithApple, loginAsGuest, logout, setProfile }}>
+    <AuthContext.Provider value={{ 
+      user, profile, loading, 
+      loginWithGoogle, loginWithApple, 
+      signInWithEmail, signUpWithEmail,
+      loginAsGuest, logout, setProfile 
+    }}>
       {children}
     </AuthContext.Provider>
   );
