@@ -17,15 +17,41 @@ import { ShieldAlert, LogOut } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Protected Route Component
-const ProtectedRoute = ({ children, allowedRoles }) => {
+const ProtectedRoute = ({ children, allowedRoles, setShowLogin }) => {
   const { profile, user, loading } = useAuth();
   const { t } = useTranslation();
 
   if (loading) return null;
 
-  if (!user) return <Navigate to="/login" replace />;
+  // If not logged in at all (not even as a guest)
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
+  // If logged in but role not allowed (e.g., Guest trying to submit)
   if (allowedRoles && !allowedRoles.includes(profile?.role)) {
+    // If it's a guest trying to access User/Admin/Owner pages, show login prompt
+    if (profile?.role === 'Guest') {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-primary/10">
+            <ShieldAlert size={40} />
+          </div>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">تسجيل الدخول مطلوب</h1>
+          <p className="text-muted-foreground font-medium max-w-md">لا يمكنك الوصول لهذه الصفحة كضيف. يرجى إنشاء حساب أو تسجيل الدخول للمتابعة.</p>
+          <button 
+            onClick={() => {
+              // Trigger login modal
+              window.dispatchEvent(new CustomEvent('open-login'));
+            }}
+            className="mt-8 px-8 py-3 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary-600 transition-all shadow-lg shadow-primary/20"
+          >
+            تسجيل الدخول الآن
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
         <div className="w-20 h-20 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-red-100">
@@ -59,11 +85,23 @@ function App() {
   }, [i18n.language])
 
   useEffect(() => {
-    // Show login modal if user is not logged in after initial load
-    if (!loading && !user) {
-      setShowLogin(true)
+    // Event listener to open login modal from anywhere
+    const handleOpenLogin = () => setShowLogin(true)
+    window.addEventListener('open-login', handleOpenLogin)
+    return () => window.removeEventListener('open-login', handleOpenLogin)
+  }, [])
+
+  useEffect(() => {
+    // Show login modal if user is not logged in (and not even as a guest)
+    // or if we want to prompt guests to sign up
+    if (!loading && (!user || profile?.role === 'Guest')) {
+      const hasSeenModal = sessionStorage.getItem('has_seen_login_modal')
+      if (!hasSeenModal) {
+        setShowLogin(true)
+        sessionStorage.setItem('has_seen_login_modal', 'true')
+      }
     }
-  }, [loading, user])
+  }, [loading, user, profile])
 
   useEffect(() => {
     // Request notification permission when user is logged in

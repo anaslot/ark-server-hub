@@ -23,6 +23,7 @@ CREATE TABLE server_requests (
   images TEXT[] DEFAULT '{}',
   links JSONB DEFAULT '[]',
   status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Rejected')),
+  expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
