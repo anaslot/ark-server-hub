@@ -22,8 +22,8 @@ const Home = () => {
   const [sortBy, setSortBy] = useState('newest');
 
   const handleAddServerClick = () => {
-    if (!user || profile?.role === 'Guest') {
-      navigate('/login');
+    if (profile?.role === 'Guest') {
+      window.dispatchEvent(new CustomEvent('open-login'));
     } else {
       navigate('/submit');
     }

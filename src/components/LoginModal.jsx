@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 const LoginModal = ({ onClose }) => {
   const { loginWithGoogle, loginWithApple, loginAsGuest, signInWithEmail, signUpWithEmail } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [formData, setFormData] = useState({
@@ -46,6 +47,7 @@ const LoginModal = ({ onClose }) => {
         toast.success('Check your email for confirmation link!');
       }
       onClose();
+      navigate('/'); // Always redirect to Home after successful login/signup
     } catch (error) {
       console.error('Email auth error:', error);
       toast.error(error.message || 'Error during authentication');
