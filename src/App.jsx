@@ -13,6 +13,8 @@ import OwnerDashboard from './pages/OwnerDashboard'
 import Blocked from './pages/Blocked'
 import LoginModal from './components/LoginModal'
 
+import { motion, AnimatePresence } from 'framer-motion'
+
 function App() {
   const { profile, loading, user } = useAuth()
   const { requestPushPermission } = useNotifications()
