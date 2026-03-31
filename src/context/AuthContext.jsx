@@ -56,9 +56,9 @@ export const AuthProvider = ({ children }) => {
     // Check current session
     const checkSession = async () => {
       try {
-        // إضافة وقت مستقطع (Timeout) لكي لا يعلق الموقع للأبد
+        // Increase timeout to 10 seconds for slower networks
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          setTimeout(() => reject(new Error('Timeout')), 10000)
         );
         
         const sessionPromise = supabase.auth.getSession();
