@@ -8,50 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check current session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      } else {
-        // Check for guest login in localStorage
-        const guestUser = localStorage.getItem('guest_user');
-        if (guestUser) {
-          const parsedGuest = JSON.parse(guestUser);
-          setUser(parsedGuest);
-          setProfile({
-            id: parsedGuest.id,
-            username: parsedGuest.user_metadata.full_name || 'Guest',
-            role: 'Guest',
-            is_active: true
-          });
-        }
-      }
-      setLoading(false);
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-        localStorage.removeItem('guest_user');
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, []);
-
   const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -63,15 +19,15 @@ export const AuthProvider = ({ children }) => {
       if (error && error.code === 'PGRST116') {
         // Profile doesn't exist, create it
         const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         let role = 'User';
-        
-        // Handle specific emails for Admin/Owner
         if (user.email === 'anasbarfeel28@gmail.com') role = 'Admin';
         if (user.email === 'anasvex25@gmail.com') role = 'Owner';
 
         const newProfile = {
           id: userId,
-          username: user.user_metadata.full_name || user.email.split('@')[0],
+          username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
           email: user.email,
           role: role,
           is_active: true,
@@ -93,6 +49,59 @@ export const AuthProvider = ({ children }) => {
       console.error('Error fetching/creating profile:', error);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Check current session
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else if (mounted) {
+          const guestUser = localStorage.getItem('guest_user');
+          if (guestUser) {
+            const parsedGuest = JSON.parse(guestUser);
+            setUser(parsedGuest);
+            setProfile({
+              id: parsedGuest.id,
+              username: parsedGuest.user_metadata?.full_name || 'Guest',
+              role: 'Guest',
+              is_active: true
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      if (session) {
+        setUser(session.user);
+        await fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setProfile(null);
+        localStorage.removeItem('guest_user');
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
