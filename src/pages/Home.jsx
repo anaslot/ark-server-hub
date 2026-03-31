@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, SlidersHorizontal, ArrowUpDown, Server, Globe, Users, Info } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, ArrowUpDown, Server, Globe, Users, Info, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import ServerCard from '../components/ServerCard';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const { t, i18n } = useTranslation();
+  const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -16,6 +20,14 @@ const Home = () => {
     language: 'all'
   });
   const [sortBy, setSortBy] = useState('newest');
+
+  const handleAddServerClick = () => {
+    if (!user || profile?.role === 'Guest') {
+      navigate('/login');
+    } else {
+      navigate('/submit');
+    }
+  };
 
   useEffect(() => {
     fetchServers();
@@ -27,7 +39,9 @@ const Home = () => {
       let query = supabase
         .from('server_requests')
         .select('*')
-        .eq('status', 'Accepted');
+        .eq('status', 'Accepted')
+        // Filter out expired servers
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (search) {
         query = query.ilike('server_name', `%${search}%`);
@@ -79,10 +93,21 @@ const Home = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto"
+          className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8"
         >
           {t('home.subtitle')}
         </motion.p>
+
+        <motion.button
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          onClick={handleAddServerClick}
+          className="bg-white text-primary px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:bg-primary-50 hover:scale-105 transition-all active:scale-95 flex items-center gap-3 mx-auto"
+        >
+          <Plus size={20} />
+          <span>{t('submit.title')}</span>
+        </motion.button>
       </section>
 
       {/* Search and Filters */}

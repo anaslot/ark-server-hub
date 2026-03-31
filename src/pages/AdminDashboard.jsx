@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { 
@@ -14,6 +15,7 @@ import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { profile } = useAuth();
+  const { notifyAll, sendNotification } = useNotifications();
   const { t } = useTranslation();
   const [requests, setRequests] = useState([]);
   const [users, setUsers] = useState([]);
@@ -54,12 +56,31 @@ const AdminDashboard = () => {
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
+      // Get server name and owner_id before update
+      const { data: serverData } = await supabase
+        .from('server_requests')
+        .select('server_name, owner_id')
+        .eq('id', id)
+        .single();
+
       const { error } = await supabase
         .from('server_requests')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
+      
+      // Notify Owner
+      const ownerMsg = newStatus === 'Accepted' 
+        ? `مبروك! تم قبول سيرفرك: ${serverData.server_name}`
+        : `نعتذر، تم رفض سيرفرك: ${serverData.server_name}`;
+      await sendNotification(serverData.owner_id, ownerMsg);
+
+      // Notify All if Accepted
+      if (newStatus === 'Accepted') {
+        await notifyAll(`تم إضافة سيرفر جديد للموقع: ${serverData.server_name}`);
+      }
+
       toast.success(`Request ${newStatus.toLowerCase()} successfully`);
       fetchData();
     } catch (error) {

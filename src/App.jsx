@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { useNotifications } from './context/NotificationContext'
 import { useTranslation } from 'react-i18next'
@@ -12,8 +12,39 @@ import AdminDashboard from './pages/AdminDashboard'
 import OwnerDashboard from './pages/OwnerDashboard'
 import Blocked from './pages/Blocked'
 import LoginModal from './components/LoginModal'
+import { ShieldAlert, LogOut } from 'lucide-react'
 
 import { motion, AnimatePresence } from 'framer-motion'
+
+// Protected Route Component
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { profile, user, loading } = useAuth();
+  const { t } = useTranslation();
+
+  if (loading) return null;
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && !allowedRoles.includes(profile?.role)) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-20 h-20 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-red-100">
+          <ShieldAlert size={40} />
+        </div>
+        <h1 className="text-3xl font-black text-gray-900 mb-2">عذراً، غير مسموح لك بالدخول</h1>
+        <p className="text-muted-foreground font-medium max-w-md">ليست لديك الصلاحيات الكافية للوصول إلى هذه الصفحة. يرجى التواصل مع الإدارة إذا كنت تعتقد أن هذا خطأ.</p>
+        <button 
+          onClick={() => window.history.back()}
+          className="mt-8 px-8 py-3 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-primary-600 transition-all shadow-lg shadow-primary/20"
+        >
+          العودة للخلف
+        </button>
+      </div>
+    );
+  }
+
+  return children;
+};
 
 function App() {
   const { profile, loading, user } = useAuth()
@@ -65,18 +96,32 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/submit" element={<SubmitServer />} />
+            <Route 
+              path="/submit" 
+              element={
+                <ProtectedRoute allowedRoles={['User', 'Admin', 'Owner']}>
+                  <SubmitServer />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/request/:code" element={<RequestDetail />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute allowedRoles={['User', 'Admin', 'Owner', 'Guest']}>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/login" element={<div className="flex items-center justify-center min-h-[60vh]"><button onClick={() => setShowLogin(true)} className="bg-primary text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary/20">Open Login</button></div>} />
             
             {/* Admin Routes */}
             <Route 
               path="/admin" 
               element={
-                ['Admin', 'Owner'].includes(profile?.role) 
-                ? <AdminDashboard /> 
-                : <Navigate to="/" />
+                <ProtectedRoute allowedRoles={['Admin', 'Owner']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
               } 
             />
             
@@ -84,9 +129,9 @@ function App() {
             <Route 
               path="/owner" 
               element={
-                profile?.role === 'Owner' 
-                ? <OwnerDashboard /> 
-                : <Navigate to="/" />
+                <ProtectedRoute allowedRoles={['Owner']}>
+                  <OwnerDashboard />
+                </ProtectedRoute>
               } 
             />
           </Routes>

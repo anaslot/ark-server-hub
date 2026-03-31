@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { Upload, X, Plus, Trash2, Send, Shield, Info, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 const SubmitServer = () => {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
+  const { notifyAdmins } = useNotifications();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState([]);
@@ -23,7 +25,16 @@ const SubmitServer = () => {
     language: i18n.language === 'ar' ? 'Arabic' : 'English',
     playersCount: 1,
     description: '',
+    duration: '1', // Default 1 month
   });
+
+  const durationOptions = [
+    { value: '1', label: i18n.language === 'ar' ? 'شهر واحد' : '1 Month' },
+    { value: '3', label: i18n.language === 'ar' ? '3 أشهر' : '3 Months' },
+    { value: '6', label: i18n.language === 'ar' ? '6 أشهر' : '6 Months' },
+    { value: '12', label: i18n.language === 'ar' ? 'سنة واحدة' : '1 Year' },
+    { value: 'permanent', label: i18n.language === 'ar' ? 'دائم (للأدمن فقط)' : 'Permanent (Admin only)' },
+  ];
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -87,6 +98,15 @@ const SubmitServer = () => {
     const code = generateCode();
 
     try {
+      // Calculate expiry date
+      let expires_at = null;
+      if (formData.duration !== 'permanent') {
+        const months = parseInt(formData.duration);
+        const date = new Date();
+        date.setMonth(date.getMonth() + months);
+        expires_at = date.toISOString();
+      }
+
       const { error, data } = await supabase
         .from('server_requests')
         .insert({
@@ -101,6 +121,7 @@ const SubmitServer = () => {
           images: images,
           links: links.filter(l => l.label && l.url),
           status: 'Pending',
+          expires_at,
           created_at: new Date().toISOString()
         })
         .select();
@@ -109,6 +130,9 @@ const SubmitServer = () => {
         console.error('Supabase Insert Error:', error);
         throw error;
       }
+
+      // Notify Admins and Owners
+      await notifyAdmins(`طلب سيرفر جديد: ${formData.serverName} من قبل ${profile.username}`);
 
       toast.success(t('submit.successMsg'));
       navigate(`/request/${code}`);
@@ -190,6 +214,26 @@ const SubmitServer = () => {
                   <option value="Arabic">Arabic</option>
                   <option value="English">English</option>
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-black text-gray-700 uppercase tracking-tight">
+                  {i18n.language === 'ar' ? 'مدة الإعلان' : 'Listing Duration'}
+                </label>
+                <select 
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  className="w-full px-4 py-3 bg-muted/30 rounded-xl border border-transparent focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all outline-none font-medium appearance-none"
+                >
+                  {durationOptions.map(opt => (
+                    <option key={opt.value} value={opt.value} disabled={opt.value === 'permanent' && !['Admin', 'Owner'].includes(profile?.role)}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-red-500 font-bold uppercase tracking-tighter mt-1">
+                  {i18n.language === 'ar' ? 'سيتم حذف إعلانك تلقائياً بعد انتهاء هذه المدة' : 'Listing will be deleted automatically after this period'}
+                </p>
               </div>
 
               <div className="space-y-2">

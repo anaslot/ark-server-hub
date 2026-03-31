@@ -35,21 +35,29 @@ export const NotificationProvider = ({ children }) => {
   };
 
   const subscribeToNotifications = () => {
+    // Listen for ALL relevant notifications
     const channel = supabase
-      .channel(`user-notifications-${profile.id}`)
+      .channel('public-notifications')
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
-        table: 'notifications',
-        filter: `user_id=eq.${profile.id}`
+        table: 'notifications'
       }, (payload) => {
-        setNotifications(prev => [payload.new, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        toast.info('New Notification', { description: payload.new.message });
+        const newNotif = payload.new;
         
-        // Browser Push Notification if supported and permitted
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('ARK Server Hub', { body: payload.new.message });
+        // Show if it's for this user
+        if (newNotif.user_id === profile.id) {
+          setNotifications(prev => [newNotif, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          
+          // Browser Push Notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('ARK Server Hub', { 
+              body: newNotif.message,
+              icon: '/favicon.svg' 
+            });
+          }
+          toast.info(newNotif.message);
         }
       })
       .subscribe();
@@ -57,6 +65,16 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const sendNotification = async (userId, message) => {
+    try {
+      await supabase
+        .from('notifications')
+        .insert({ user_id: userId, message, created_at: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
   };
 
   const markAsRead = async (id) => {
@@ -67,22 +85,24 @@ export const NotificationProvider = ({ children }) => {
         .eq('id', id);
 
       if (error) throw error;
-      setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking as read:', error);
+      console.error('Error marking notification as read:', error);
     }
   };
 
   const markAllAsRead = async () => {
+    if (!profile) return;
     try {
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('user_id', profile.id);
+        .eq('user_id', profile.id)
+        .eq('read', false);
 
       if (error) throw error;
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -90,16 +110,69 @@ export const NotificationProvider = ({ children }) => {
   };
 
   const requestPushPermission = async () => {
-    if (!('Notification' in window)) return;
-    
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      toast.success('Notifications enabled!');
+    if (!('Notification' in window)) {
+      console.log('This browser does not support desktop notification');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        console.log('Notification permission granted.');
+      }
+    }
+  };
+
+  const notifyAdmins = async (message) => {
+    try {
+      const { data: admins } = await supabase
+        .from('profiles')
+        .select('id')
+        .in('role', ['Admin', 'Owner']);
+      
+      if (admins) {
+        const notifications = admins.map(admin => ({
+          user_id: admin.id,
+          message,
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
+    } catch (error) {
+      console.error('Error notifying admins:', error);
+    }
+  };
+
+  const notifyAll = async (message) => {
+    try {
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('id');
+      
+      if (users) {
+        const notifications = users.map(user => ({
+          user_id: user.id,
+          message,
+          created_at: new Date().toISOString()
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
+    } catch (error) {
+      console.error('Error notifying all:', error);
     }
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllAsRead, requestPushPermission }}>
+    <NotificationContext.Provider value={{ 
+      notifications, 
+      unreadCount, 
+      markAsRead, 
+      markAllAsRead, 
+      requestPushPermission,
+      sendNotification,
+      notifyAdmins,
+      notifyAll
+    }}>
       {children}
     </NotificationContext.Provider>
   );
