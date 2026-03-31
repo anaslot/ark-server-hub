@@ -82,7 +82,11 @@ function App() {
   useEffect(() => {
     // Show login modal if user is not logged in (and not even as a guest)
     if (!loading && !user) {
-      setShowLogin(true)
+      const hasSeenModal = sessionStorage.getItem('has_seen_login_modal')
+      if (!hasSeenModal) {
+        setShowLogin(true)
+        sessionStorage.setItem('has_seen_login_modal', 'true')
+      }
     }
   }, [loading, user])
 

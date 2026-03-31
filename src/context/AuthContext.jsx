@@ -130,6 +130,13 @@ export const AuthProvider = ({ children }) => {
       password,
     });
     if (error) throw error;
+    
+    // Explicitly set the session in memory to avoid initial loading flicker
+    if (data.user) {
+      setUser(data.user);
+      await fetchProfile(data.user.id);
+    }
+    
     return data;
   };
 
