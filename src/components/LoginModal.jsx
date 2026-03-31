@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { X, Shield, Mail, Apple, User, Globe, Lock, UserPlus, LogIn } from 'lucide-react';
