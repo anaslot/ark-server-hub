@@ -46,7 +46,7 @@ export const NotificationProvider = ({ children }) => {
         const newNotif = payload.new;
         
         // Show if it's for this user
-        if (newNotif.user_id === profile.id) {
+        if (profile && newNotif.user_id === profile.id) {
           setNotifications(prev => [newNotif, ...prev]);
           setUnreadCount(prev => prev + 1);
           
@@ -59,8 +59,13 @@ export const NotificationProvider = ({ children }) => {
           }
           toast.info(newNotif.message);
         }
-      })
-      .subscribe();
+      });
+
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('Successfully subscribed to notifications');
+      }
+    });
 
     return () => {
       supabase.removeChannel(channel);
