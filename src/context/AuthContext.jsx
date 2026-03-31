@@ -56,7 +56,14 @@ export const AuthProvider = ({ children }) => {
     // Check current session
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // إضافة وقت مستقطع (Timeout) لكي لا يعلق الموقع للأبد
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+
         if (session && mounted) {
           setUser(session.user);
           await fetchProfile(session.user.id);
@@ -74,7 +81,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (err) {
-        console.error('Session check error:', err);
+        console.error('Session check error or timeout:', err);
       } finally {
         if (mounted) setLoading(false);
       }
