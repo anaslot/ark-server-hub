@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { X, Shield, Mail, Chrome, Apple, User } from 'lucide-react';
+import { X, Shield, Mail, Apple, User, Chrome } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LoginModal = ({ onClose }) => {
